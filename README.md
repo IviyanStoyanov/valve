@@ -4,13 +4,13 @@
   
   VCC - 5v
   
-  MISO - p19
+  MISO - pin19
   
-  MOSI - p23
+  MOSI - pin23
   
-  CS - p5
+  CS - pin5
   
-  SCK - p18
+  SCK - pin18
 
 
 [RTC](https://www.arduinolibraries.info/libraries/rt-clib):
@@ -19,12 +19,12 @@ GND - GND
 
 VCC - 3v3
 
-SDA - p21
+SDA - pin21
 
-SCL - p22
+SCL - pin22
 
 **клапа**:
 
-използва p2
+използва pin2
 
 10Ω резистор
