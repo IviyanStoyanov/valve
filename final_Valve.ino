@@ -10,7 +10,6 @@
 BluetoothSerial SerialBT;
 
 RTC_PCF8523 rtc;
-//RTC_DS1307 rtc;
 
 ext::File myFile;
 const int chipSelect = 5;
