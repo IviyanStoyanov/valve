@@ -1,6 +1,6 @@
 #include "BluetoothSerial.h"
 #include <SPI.h>
-#include <SD.h>
+#include <mySD.h>
 #include <RTClib.h>
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
@@ -8,142 +8,133 @@
 #endif
 
 BluetoothSerial SerialBT;
+
 RTC_PCF8523 rtc;
-File myFile;
+//RTC_DS1307 rtc;
 
+ext::File myFile;
 const int chipSelect = 5;
-static bool dataSentToBluetooth = false;
 
-int valvePins[8] = {2, 4, 15, 16, 17, 34, 35, 32};
-
+int valvePins[8] = {2, 4, 15, 16, 17, 32, 34, 35};
 int lastValveState[8];
-
-int hourBegin;
-int minuteBegin;
-int secondBegin;
-
-int hourEnd;
-int minuteEnd;
-int secondEnd;
-
-int hourFinal;
-int minuteFinal;
-int secondFinal;
 
 void setup() {
   Serial.begin(115200);
+  delay(1000);
 
   // Bluetooth
   SerialBT.begin("ESP32test");
-
-  // SD module
+  
+  //SD модул
   pinMode(SS, OUTPUT);
-
   if (!SD.begin(5)) {
-    Serial.println("Error initializing SD card!");
+    Serial.println("проблем със sd картата");
     return;
   }
+  Serial.println("sd картата е готова");
 
-  // RTC module
-  if (!rtc.begin()) {
+  // RTC модул
+  if (! rtc.begin()) {
+    Serial.println("проблем с RTC модулът");
     Serial.flush();
-    Serial.println("Error initializing RTC");
     while (1);
   }
+  else
+  {
+    Serial.println("RTC модулът е готов");
+  }
+
   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 
+  //pins
   for (int i = 0; i < 8; i++) {
     pinMode(valvePins[i], INPUT);
     lastValveState[i] = digitalRead(valvePins[i]);
   }
 }
 
-void loop() {
-  for (int i = 0; i < 8; i++) {
-    int currentValveState = digitalRead(valvePins[i]);
+void loop() 
+{
 
-    if (currentValveState != lastValveState[i]) {
-      DateTime now = rtc.now();
+  int valveHour, valveMinute, valveSecond;
+  //RTC start
+  for (int i = 0; i < 8; i++) 
+  {
+      int currentValveState = digitalRead(valvePins[i]);
 
-      if (currentValveState == HIGH) {
-        Serial.print(valvePins[i]);
-        Serial.println(": on");
-        hourBegin = now.hour();
-        minuteBegin = now.minute();
-        secondBegin = now.second();
-      } else {
-        Serial.println("off");
-        hourEnd = now.hour();
-        minuteEnd = now.minute();
-        secondEnd = now.second();
+      if (currentValveState != lastValveState[i]) 
+      {
+          DateTime now = rtc.now();
 
-        // Calculate the time difference
-        uint32_t startTime = hourBegin * 3600 + minuteBegin * 60 + secondBegin;
-        uint32_t endTime = hourEnd * 3600 + minuteEnd * 60 + secondEnd;
-        uint32_t timeDifference = endTime - startTime;
+          if (currentValveState == HIGH) 
+          {
+              Serial.print("valve: ");
+              Serial.print(valvePins[i]);
+              delay(1000);
+              valveHour = now.hour();
+              valveMinute = now.minute();
+              valveSecond = now.second();
+          } 
+          else 
+            {
+              Serial.print(" ");
+              Serial.print(now.day());
+              Serial.print("/");
+              Serial.print(now.month());
+              Serial.print(" ");
+              Serial.print("от");
+              Serial.print(" ");
+              Serial.print(valveHour);
+              Serial.print(":");
+              Serial.print(valveMinute);
+              Serial.print(":");
+              Serial.print(valveSecond);
+              Serial.print(" ");
+              Serial.print("до");
+              Serial.print(" ");
+              Serial.print(now.hour());
+              Serial.print(":");
+              Serial.print(now.minute());
+              Serial.print(":");
+              Serial.println(now.second() + 1);
+            }
 
-        // Calculate hours, minutes, and seconds from the total in seconds
-        hourFinal = timeDifference / 3600;
-        minuteFinal = (timeDifference % 3600) / 60;
-        secondFinal = timeDifference % 60;
-
-
-        myFile = SD.open("times.txt", FILE_WRITE);
-        if (myFile) {
-          Serial.println("myFile opened");
-          myFile.print("valve ");
-          myFile.print(valvePins[i]);
-          myFile.print(": ");
-          myFile.print(now.day());
-          myFile.print("/");
-          myFile.print(now.month());
-          myFile.print("/");
-          myFile.print(now.year());
-          myFile.print(" ");
-          myFile.print(hourFinal);
-          myFile.print("h ");
-          myFile.print(minuteFinal);
-          myFile.print("m ");
-          myFile.print(secondFinal);
-          myFile.println("s");
-
-          myFile.close();
-        }else
+          delay(100);
+          lastValveState[i] = currentValveState;
+       }
+  }
+  //RTC end
+  
+  //bluetooth start
+  if (SerialBT.available()) 
+  {
+    if (SerialBT.read() == 'd')  // Compare with a character literal
+    {
+      if (SerialBT.read() == 'a' && SerialBT.read() == 't' && SerialBT.read() == 'a')  // Check for the complete string "data"
+      {
+        myFile = SD.open("test.txt", FILE_READ);
+        Serial.println("opened");
+        SerialBT.println("received");
+        if (myFile) 
         {
-          Serial.println("!!! ERROR FILE DID NOT OPEN !!!");
-        }
+          while (myFile.available()) {
+            char c = myFile.read();
+            SerialBT.write(c);
+          }
+          myFile.close();
+          Serial.println("closed");
+        } 
+  
+        dataSentToBluetooth = true;
+        Serial.println("bluetooth true");
+        delay(1000);
       }
-
-      delay(100);
-      lastValveState[i] = currentValveState;
+    } 
+    else {
+      SerialBT.print("invalid command");
     }
   }
-
-  if (SerialBT.available() && !dataSentToBluetooth) {
-    myFile = SD.open("times.txt", FILE_READ);
-    Serial.println("opened");
-    SerialBT.println("received");
-    if (myFile) {
-      while (myFile.available()) {
-        char c = myFile.read();
-        SerialBT.write(c);
-      }
-      myFile.close();
-      Serial.println("closed");
-      dataSentToBluetooth = true;
-      Serial.println("bluetooth true");
-    } else {
-      SerialBT.print("fail!");
-    }
-  }
-
-  if (dataSentToBluetooth) {
-    Serial.println("almost false");
-    if (SerialBT.available()) {
-      Serial.println("bluetooth false");
-      dataSentToBluetooth = false;
-    }
-  }
+  //bluetooth end
 
   delay(20);
 }
