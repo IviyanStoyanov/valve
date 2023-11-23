@@ -123,8 +123,6 @@ void loop()
           myFile.close();
           Serial.println("closed");
         } 
-  
-        dataSentToBluetooth = true;
         Serial.println("bluetooth true");
         delay(1000);
       }
