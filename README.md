@@ -30,3 +30,9 @@ SCL - pin22
 pin 2, pin 4, pin 15, pin 16, pin 17, pin 32, pin 34, pin 35
 
 10Ω резистор
+
+[Serial Bluetooth Terminal](https://play.google.com/store/apps/details?id=de.kai_morich.serial_bluetooth_terminal&hl=en&gl=US)
+- от настройките на устройството трябва да се свърже с esp-то
+- на приложението в десният ъгъл има бутон за свързване натиска се
+- в терминала на приложението трябва да изпише че са се свързали успешно
+- после в текстовото поле трябва да се напише "data" за да се изведе всичката информация от SD картара
