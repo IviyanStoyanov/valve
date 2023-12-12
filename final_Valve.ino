@@ -2,6 +2,7 @@
 #include <SPI.h>
 #include <mySD.h>
 #include <RTClib.h>
+#include <Adafruit_I2CDevice.h>
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` and enable it
@@ -9,7 +10,7 @@
 
 BluetoothSerial SerialBT;
 
-RTC_PCF8523 rtc;
+RTC_DS3231 rtc;
 
 ext::File myFile;
 const int chipSelect = 5;
@@ -27,20 +28,20 @@ void setup() {
   //SD модул
   pinMode(SS, OUTPUT);
   if (!SD.begin(5)) {
-    Serial.println("проблем със sd картата");
+    Serial.println("Problem with the sd card");
     return;
   }
-  Serial.println("sd картата е готова");
+  Serial.println("the sd card is ready");
 
   // RTC модул
   if (! rtc.begin()) {
-    Serial.println("проблем с RTC модулът");
+    Serial.println("Problem with the RTC module");
     Serial.flush();
     while (1);
   }
   else
   {
-    Serial.println("RTC модулът е готов");
+    Serial.println("the RTC module is ready");
   }
 
   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
@@ -67,8 +68,8 @@ void loop()
 
           if (currentValveState == HIGH) 
           {
-              Serial.print("valve: ");
-              Serial.print(valvePins[i]);
+              myFile.print("valve: ");
+              myFile.print(valvePins[i]);
               delay(1000);
               valveHour = now.hour();
               valveMinute = now.minute();
@@ -76,26 +77,33 @@ void loop()
           } 
           else 
             {
-              Serial.print(" ");
-              Serial.print(now.day());
-              Serial.print("/");
-              Serial.print(now.month());
-              Serial.print(" ");
-              Serial.print("от");
-              Serial.print(" ");
-              Serial.print(valveHour);
-              Serial.print(":");
-              Serial.print(valveMinute);
-              Serial.print(":");
-              Serial.print(valveSecond);
-              Serial.print(" ");
-              Serial.print("до");
-              Serial.print(" ");
-              Serial.print(now.hour());
-              Serial.print(":");
-              Serial.print(now.minute());
-              Serial.print(":");
-              Serial.println(now.second() + 1);
+              myFile = SD.open("times.txt", FILE_WRITE);
+              if (myFile) {
+              myFile.print(" ");
+              myFile.print(now.day());
+              myFile.print("/");
+              myFile.print(now.month());
+              myFile.print(" ");
+              myFile.print("from");
+              myFile.print(" ");
+              myFile.print(valveHour);
+              myFile.print(":");
+              myFile.print(valveMinute);
+              myFile.print(":");
+              myFile.print(valveSecond);
+              myFile.print(" ");
+              myFile.print("to");
+              myFile.print(" ");
+              myFile.print(now.hour());
+              myFile.print(":");
+              myFile.print(now.minute());
+              myFile.print(":");
+              myFile.println(now.second() + 1);
+              myFile.close();
+              }else{
+                Serial.println("error opening times.txt");
+              }
+              
             }
 
           delay(100);
@@ -111,7 +119,7 @@ void loop()
     {
       if (SerialBT.read() == 'a' && SerialBT.read() == 't' && SerialBT.read() == 'a')  // Check for the complete string "data"
       {
-        myFile = SD.open("test.txt", FILE_READ);
+        myFile = SD.open("times.txt", FILE_READ);
         Serial.println("opened");
         SerialBT.println("received");
         if (myFile) 
@@ -122,8 +130,9 @@ void loop()
           }
           myFile.close();
           Serial.println("closed");
-        } 
-        Serial.println("bluetooth true");
+        } else{
+           Serial.println("error opening file");
+        }
         delay(1000);
       }
     } 
