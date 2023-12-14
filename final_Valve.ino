@@ -68,8 +68,13 @@ void loop()
 
           if (currentValveState == HIGH) 
           {
+              myFile = SD.open("times.txt", FILE_WRITE);
+              if (myFile) {
               myFile.print("valve: ");
               myFile.print(valvePins[i]);
+               }else{
+                Serial.println("error opening times.txt");
+              }
               delay(1000);
               valveHour = now.hour();
               valveMinute = now.minute();
@@ -77,7 +82,7 @@ void loop()
           } 
           else 
             {
-              myFile = SD.open("times.txt", FILE_WRITE);
+             
               if (myFile) {
               myFile.print(" ");
               myFile.print(now.day());
@@ -86,7 +91,7 @@ void loop()
               myFile.print(" ");
               myFile.print("from");
               myFile.print(" ");
-              myFile.print(valveHour);
+              myFile.print(valveHour);  
               myFile.print(":");
               myFile.print(valveMinute);
               myFile.print(":");
