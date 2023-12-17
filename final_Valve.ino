@@ -39,10 +39,7 @@ void setup() {
     Serial.flush();
     while (1);
   }
-  else
-  {
-    Serial.println("the RTC module is ready");
-  }
+  else { Serial.println("the RTC module is ready"); }
 
   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 
@@ -69,47 +66,33 @@ void loop()
           if (currentValveState == HIGH) 
           {
               myFile = SD.open("times.txt", FILE_WRITE);
+              if (myFile) 
+              {
+                  myFile.print("valve: ");
+                  myFile.print(valvePins[i]);
+
+                  // Format the time using sprintf
+                  char timeBuffer[12];
+                  sprintf(timeBuffer, " %02u:%02u:%02u", now.hour(), now.minute(), now.second());
+                  myFile.print(" ");
+                  myFile.print(now.day());
+                  myFile.print("/");
+                  myFile.print(now.month());
+                  myFile.print(" from ");
+                  myFile.print(timeBuffer);
+
+              } else { Serial.println("error opening times.txt");}
+           } else {
               if (myFile) {
-              myFile.print("valve: ");
-              myFile.print(valvePins[i]);
-               }else{
-                Serial.println("error opening times.txt");
-              }
-              delay(1000);
-              valveHour = now.hour();
-              valveMinute = now.minute();
-              valveSecond = now.second();
-          } 
-          else 
-            {
-             
-              if (myFile) {
-              myFile.print(" ");
-              myFile.print(now.day());
-              myFile.print("/");
-              myFile.print(now.month());
-              myFile.print(" ");
-              myFile.print("from");
-              myFile.print(" ");
-              myFile.print(valveHour);  
-              myFile.print(":");
-              myFile.print(valveMinute);
-              myFile.print(":");
-              myFile.print(valveSecond);
-              myFile.print(" ");
-              myFile.print("to");
-              myFile.print(" ");
-              myFile.print(now.hour());
-              myFile.print(":");
-              myFile.print(now.minute());
-              myFile.print(":");
-              myFile.println(now.second() + 1);
-              myFile.close();
-              }else{
-                Serial.println("error opening times.txt");
-              }
-              
-            }
+                  // Format the start time using sprintf
+                  char startTimeBuffer[12];
+                  sprintf(startTimeBuffer, " %02u:%02u:%02u", now.hour(), now.minute(), now.second());
+                  myFile.print(" to ");
+                  myFile.println(startTimeBuffer);
+
+                  myFile.close();
+              } else { Serial.println("error opening times.txt"); }
+          }
 
           delay(100);
           lastValveState[i] = currentValveState;
@@ -135,15 +118,11 @@ void loop()
           }
           myFile.close();
           Serial.println("closed");
-        } else{
-           Serial.println("error opening file");
-        }
+        } else { Serial.println("error opening file"); }
         delay(1000);
       }
     } 
-    else {
-      SerialBT.print("invalid command");
-    }
+    else { SerialBT.print("invalid command"); }
   }
   //bluetooth end
 
