@@ -97,7 +97,7 @@ void loop() {
   if (SerialBT.available()) {
     if (SerialBT.read() == 'd') {
       if (SerialBT.read() == 'a' && SerialBT.read() == 't' && SerialBT.read() == 'a') {
-        myFile = SD.open("times.txt", FILE_READ);
+        myFile = SD.open("valves.csv", FILE_READ);
         SerialBT.println("received");
         if (myFile) {
           while (myFile.available()) {
