@@ -66,6 +66,7 @@ void loop() {
           if (myFile) {
             Serial.print("valve: ");
             Serial.print(valvePins[i]);
+            Serial.println("opened");
             myFile.print("valve: ");
             myFile.print(valvePins[i]);
             myFile.print(", ");
@@ -73,6 +74,7 @@ void loop() {
             char timeBuffer[12];
             sprintf(timeBuffer, " %02u:%02u:%02u", now.hour(), now.minute(), now.second());
 
+            Serial.print("closed");
             myFile.print(now.day());
             myFile.print("/");
             myFile.print(now.month());
