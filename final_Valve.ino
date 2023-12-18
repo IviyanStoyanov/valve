@@ -64,6 +64,8 @@ void loop() {
         if (valveOpenTime >= 10000) {
           myFile = SD.open("valves.csv", FILE_WRITE);
           if (myFile) {
+            Serial.print("valve: ");
+            Serial.print(valvePins[i]);
             myFile.print("valve: ");
             myFile.print(valvePins[i]);
             myFile.print(", ");
@@ -94,7 +96,6 @@ void loop() {
     if (SerialBT.read() == 'd') {
       if (SerialBT.read() == 'a' && SerialBT.read() == 't' && SerialBT.read() == 'a') {
         myFile = SD.open("times.txt", FILE_READ);
-        Serial.println("opened");
         SerialBT.println("received");
         if (myFile) {
           while (myFile.available()) {
@@ -102,7 +103,6 @@ void loop() {
             SerialBT.write(c);
           }
           myFile.close();
-          Serial.println("closed");
         } else {
           Serial.println("error opening file");
         }
