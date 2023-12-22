@@ -14,7 +14,7 @@ RTC_DS3231 rtc;
 ext::File myFile;
 const int chipSelect = 5;
 
-int valvePins[8] = {0, 4, 15, 16, 17, 32, 34, 35};
+int valvePins[8] = {0, 4, 15, 16, 17, 25, 26, 33};
 int lastValveState[8];
 long valveOpenStartTime[8];  // Track individual valve open time
 
@@ -45,6 +45,10 @@ void setup() {
   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 
   // pins
+
+  for (int i = 0; i < 8; i++) {
+    pinMode(valvePins[i], INPUT);
+  }
 }
 
 void loop() {
@@ -54,33 +58,51 @@ void loop() {
     if (currentValveState != lastValveState[i]) {
       DateTime now = rtc.now();
 
-      if (currentValveState == HIGH) {
+      if (currentValveState == LOW) {
         // Valve opened
         valveOpenStartTime[i] = millis();
       } else {
         // Valve closed
         long valveOpenTime = millis() - valveOpenStartTime[i];
 
-        if (valveOpenTime >= 10000) {
+        if (valveOpenTime >= 3000) {
+            Serial.print(valvePins[i]);
+            Serial.println(" Open" );
+                                           char timeBuffer[12];
+            sprintf(timeBuffer, " %02u:%02u:%02u", now.hour(), now.minute(), now.second());
+            Serial.print(now.year());
+            Serial.print(".");
+            Serial.print(now.day());
+            Serial.print(".");
+            Serial.print(now.month());
+            Serial.print(", ");
+            Serial.print(timeBuffer);
+            Serial.println();
+            Serial.print(valveOpenTime/1000);
+            Serial.println("sec.");
+           
+          
           myFile = SD.open("valves.csv", FILE_WRITE);
           if (myFile) {
-            Serial.print("valve: ");
-            Serial.print(valvePins[i]);
-            Serial.println("opened");
-            myFile.print("valve: ");
+            
+            
             myFile.print(valvePins[i]);
+            myFile.println(" Open");
             myFile.print(", ");
 
             char timeBuffer[12];
             sprintf(timeBuffer, " %02u:%02u:%02u", now.hour(), now.minute(), now.second());
 
-            Serial.print("closed");
+            myFile.print(now.year());
+            myFile.print(".");
             myFile.print(now.day());
-            myFile.print("/");
+            myFile.print(".");
             myFile.print(now.month());
             myFile.print(", ");
             myFile.print(timeBuffer);
             myFile.println();
+            myFile.print(valveOpenTime/1000);
+            myFile.println("sec.");
             myFile.close();
           } else {
             Serial.println("error opening valves.csv");
