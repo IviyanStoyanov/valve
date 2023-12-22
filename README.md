@@ -27,7 +27,7 @@ SCL - pin22
 
 използва 
 
-pin 2, pin 4, pin 15, pin 16, pin 17, pin 32, pin 34, pin 35
+pin 0, pin 4, pin 15, pin 16, pin 17, pin 25, pin 26, pin 33
 
 10Ω резистор
 
